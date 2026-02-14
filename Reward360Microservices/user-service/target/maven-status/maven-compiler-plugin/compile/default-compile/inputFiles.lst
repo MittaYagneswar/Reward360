@@ -1,0 +1,17 @@
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\service\UserService.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\repository\UserRepository.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\config\OpenApiConfig.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\dto\LoginDto.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\config\SecurityConfig.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\dto\CustomerProfileDto.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\client\CustomerServiceClient.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\UserServiceApplication.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\client\RewardsClient.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\dto\UserDto.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\model\CustomerProfile.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\controller\AuthController.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\model\Role.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\controller\CustomerController.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\controller\UserController.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\model\User.java
+C:\CTS_Project\New folder\Reward360Microservices\user-service\src\main\java\com\user\service\repository\CustomerProfileRepository.java
