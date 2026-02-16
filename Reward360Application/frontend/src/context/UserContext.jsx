@@ -16,19 +16,18 @@ export const UserProvider = ({ children }) => {
   const [redemptions, setRedemptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Helper to check if we are logged in
   const isAuthenticated = () => !!localStorage.getItem('userId');
 
-  const refreshAll = useCallback(async () => {
-    // Stop if there is no user ID to prevent 400 errors
+  // isSilent prevents the full-page "Loading..." splash during background updates
+  const refreshAll = useCallback(async (isSilent = false) => {
     if (!isAuthenticated()) {
       setLoading(false);
       return;
     }
 
-    setLoading(true);
+    if (!isSilent) setLoading(true); 
+
     try {
-      // Fetch all user-specific data in parallel
       const [userData, transData, offersData, redeemData] = await Promise.all([
         userService.getMe(),
         userService.getTransactions(),
@@ -47,33 +46,30 @@ export const UserProvider = ({ children }) => {
     }
   }, []);
 
-  // Claim points and update UI immediately
+  // Use this in Login.jsx to prevent seeing the previous user's data
+  const loginUser = async () => {
+    setUser(null);
+    setTransactions([]);
+    setOffers([]);
+    setRedemptions([]);
+    await refreshAll(false);
+  };
+
   const claimPoints = async (code, pts, note) => {
     await userService.claimPoints(code, pts, note);
-    await refreshAll(); // Refresh to update point balance on screen
+    await refreshAll(true); // Silent background refresh
   };
 
-  // Redeem offer and update UI immediately
   const redeemOffer = async (offerId, store) => {
     await userService.redeemOffer(offerId, store);
-    await refreshAll(); // Refresh to show new redemption in list
+    await refreshAll(true); // Silent background refresh
   };
 
-  // Run on initial page load
   useEffect(() => {
     refreshAll();
   }, [refreshAll]);
 
-  const value = {
-    user,
-    transactions,
-    offers,
-    redemptions,
-    loading,
-    refreshAll,
-    claimPoints,
-    redeemOffer
-  };
+  const value = { user, transactions, offers, redemptions, loading, refreshAll, claimPoints, redeemOffer, loginUser };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };

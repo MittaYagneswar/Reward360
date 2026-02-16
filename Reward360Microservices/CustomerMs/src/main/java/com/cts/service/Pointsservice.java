@@ -97,6 +97,7 @@ public class Pointsservice {
         transaction.setPointsRedeemed(offer.getCostPoints());
         transaction.setNote(offer.getTitle());
         transaction.setUserId(userId);
+        transaction.setStore("Online"); // Assuming online redemption, can be dynamic based on offer
         transaction.setDate(LocalDate.now());
         transactionRepository.save(transaction);
 
@@ -163,6 +164,7 @@ if (profile == null) { throw new RuntimeException("Customer profile not found fo
         // Add points to profile
         int previousBalance = profile.getPointsBalance();
         profile.setPointsBalance(previousBalance + claimRequest.getPoints());
+        profile.setLifetimePoints(profile.getLifetimePoints() + claimRequest.getPoints());
         custrepo.save(profile);
         
         // Create transaction record only (no redemption entry)
