@@ -2,11 +2,13 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../../api/client'
+import { useUser } from '../../context/UserContext'
 
 export default function Login(){
   const [form, setForm] = useState({ email:'', password:'', role:'USER', mode:'Password' })
   const [err, setErr] = useState('')
   const navigate = useNavigate()
+  const { loginUser } = useUser()
 
   const onChange = e=> setForm(p=>({...p, [e.target.name]: e.target.value}))
   const submit = async e=>{
@@ -17,6 +19,12 @@ export default function Login(){
       localStorage.setItem('token', data.token) // Assuming token is directly in data or data.token
       localStorage.setItem('role', data.role)
       localStorage.setItem('userId', data.id)
+      // Refresh user context so the app shows the current user immediately
+      try {
+        await loginUser()
+      } catch (err) {
+        console.error('Login: failed to refresh user context', err)
+      }
       if(data.role==='ADMIN') navigate('/admin')
       else navigate('/user')
     }catch(ex){ setErr('Invalid credentials') }

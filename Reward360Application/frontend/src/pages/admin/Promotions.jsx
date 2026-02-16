@@ -6,13 +6,13 @@ import img2 from "../../PUBLIC/img2.webp";
 import gift1 from "../../PUBLIC/gift1.jpg";
 import img3 from "../../PUBLIC/img3.webp";
 import "../../styles/promotions.css";
-
-
+ 
+ 
 export default function Promotions() {
   const [analytics, setAnalytics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+ 
   const getApiBase = () => {
     if (typeof window !== "undefined" && window.REACT_APP_API_URL) {
       return String(window.REACT_APP_API_URL).replace(/\/$/, "");
@@ -26,23 +26,23 @@ export default function Promotions() {
     }
     return "http://localhost:8086"; // default API base URL
   };
-
+ 
   async function fetchAnalytics() {
     setLoading(true);
     setError(null);
     try {
       const base = getApiBase();
       const url = `${base}/api/promotions/analytics`;
-
+ 
       const headers = { Accept: "application/json" };
       const token =
         localStorage.getItem("token") ||
         localStorage.getItem("accessToken") ||
         sessionStorage.getItem("token");
       if (token) headers.Authorization = `Bearer ${token}`;
-
+ 
       const res = await fetch(url, { headers });
-
+ 
       if (res.status === 401 || res.status === 403) {
         throw new Error(
           `Unauthorized (status ${res.status}). Ensure you are logged in as ADMIN.`,
@@ -52,7 +52,7 @@ export default function Promotions() {
         const text = await res.text();
         throw new Error(`API error ${res.status}: ${text.slice(0, 300)}`);
       }
-
+ 
       const ct = (res.headers.get("content-type") || "").toLowerCase();
       if (!ct.includes("application/json")) {
         const text = await res.text();
@@ -60,7 +60,7 @@ export default function Promotions() {
           "Expected JSON but received non-JSON response: " + text.slice(0, 300),
         );
       }
-
+ 
       const data = await res.json();
       const list = Array.isArray(data)
         ? data
@@ -81,11 +81,11 @@ export default function Promotions() {
       setLoading(false);
     }
   }
-
+ 
   const categories = [
     {
       name: "Electronics",
-      description: "Gadgets, devices, and tech accessories deals.",
+      description: "Devices, and tech accessories deals.",
       image: img2,
     },
     {
@@ -114,7 +114,7 @@ export default function Promotions() {
       image: img6,
     },
   ];
-
+ 
   return (
     <div className="promotions">
       <div className="grid cols-3 top-grid">
@@ -125,21 +125,21 @@ export default function Promotions() {
             Create Offer
           </Link>
         </div>
-
+ 
         <div className="card">
           <h3>Analytics</h3>
           <p>High-level metrics of ongoing campaigns.</p>
-
+ 
           <button className="button" onClick={fetchAnalytics}>
             Open Analytics
           </button>
-
+ 
           {loading && <div style={{ marginTop: 8 }}>Loading analytics...</div>}
           {error && (
             <div style={{ marginTop: 8, color: "red" }}>Error: {error}</div>
           )}
         </div>
-
+ 
         <div className="card">
           <h3>View All Offers</h3>
           <p>Access all available offers in one view.</p>
@@ -148,7 +148,7 @@ export default function Promotions() {
           </Link>
         </div>
       </div>
-
+ 
       <section className="section categories-section">
         <h3>Offer Categories</h3>
         <div className="grid cols-3 categories-grid">
@@ -174,7 +174,7 @@ export default function Promotions() {
           })}
         </div>
       </section>
-
+ 
       <section className="section analytics-section">
         <h3>Analytics</h3>
         <div className="analytics-wrapper">
@@ -214,3 +214,5 @@ export default function Promotions() {
     </div>
   );
 }
+
+ 

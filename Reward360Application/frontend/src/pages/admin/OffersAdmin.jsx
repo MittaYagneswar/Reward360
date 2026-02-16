@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../api/client";
 import "../../styles/offersAdmin.css";
-
+ 
 export default function OffersAdmin() {
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState([]);
   const today = new Date().toISOString().split('T')[0];
   const [o, setO] = useState({
@@ -27,11 +29,21 @@ export default function OffersAdmin() {
   };
   useEffect(() => {
     load();
-  }, []);
+    const category = searchParams.get('category');
+    const description = searchParams.get('description');
+    if (category || description) {
+      setO(p => ({
+        ...p,
+        category: category || p.category,
+        description: description || p.description
+      }));
+    }
+  }, [searchParams]);
   const validate = () => {
     if (!o.title.trim()) return "Title is required";
     if (!o.category.trim()) return "Category is required";
     if (!o.description.trim()) return "Description is required";
+    if (!o.costPoints || o.costPoints === '') return "Cost points is required";
     if (Number.isNaN(Number(o.costPoints)) || Number(o.costPoints) < 0)
       return "Cost points must be a non-negative number";
     return "";
@@ -46,10 +58,10 @@ export default function OffersAdmin() {
       return;
     }
     try {
-      const payload = { ...o };
+      const payload = { ...o, costPoints: parseInt(o.costPoints, 10), active: true };
       if (!payload.tierLevel) payload.tierLevel = null;
-      await api.post("/api/promotions/promotions", payload);
-      setMsg("Offer created successfully");
+      const response = await api.post("/api/promotions/promotions", payload);
+      setMsg("Offer created and published successfully");
       setO({
         title: "",
         category: "",
@@ -84,6 +96,7 @@ export default function OffersAdmin() {
             placeholder="e.g., Electronics"
             value={o.category}
             onChange={(e) => setO((p) => ({ ...p, category: e.target.value }))}
+            required
           />
           <label>Description</label>
           <textarea
@@ -93,19 +106,21 @@ export default function OffersAdmin() {
             onChange={(e) =>
               setO((p) => ({ ...p, description: e.target.value }))
             }
+            required
           />
           <label>Cost Points</label>
           <input
             className="input"
-            type="number"
+            type="text"
             placeholder="e.g., 350"
             value={o.costPoints}
-            onChange={(e) =>
-              setO((p) => ({
-                ...p,
-                costPoints: parseInt(e.target.value || 0, 10),
-              }))
-            }
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '' || /^[0-9]+$/.test(val)) {
+                setO((p) => ({ ...p, costPoints: val }));
+              }
+            }}
+            required
           />
           <label>Tier Level</label>
           <select
@@ -244,3 +259,5 @@ export default function OffersAdmin() {
     </div>
   );
 }
+
+ 

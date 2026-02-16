@@ -1,6 +1,7 @@
 package com.example.dashboard_backend.controller;
 
 import com.example.dashboard_backend.client.CustomerTransactionClient;
+import com.example.dashboard_backend.dto.TransactionDTO;
 import com.example.dashboard_backend.entity.Transaction;
 import com.example.dashboard_backend.repository.TransactionRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,8 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/api/v1/transactions")
@@ -35,7 +38,7 @@ public class TransactionController {
             @RequestParam(required = false) String accountId,
             @RequestParam(required = false) String riskLevel,   // LOW/MEDIUM/HIGH/CRITICAL
             @RequestParam(required = false) String status,      // CLEARED/REVIEW/BLOCKED
-            @RequestParam(required = false) String type,        // EARN/REDEEM/EXPIRE/BONUS/CLAIM
+            // removed type filter
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
             @RequestParam(required = false) Integer minPoints,
@@ -44,18 +47,20 @@ public class TransactionController {
     ) {
         String risk = riskLevel != null ? riskLevel.toUpperCase() : null;
         String st = status != null ? status.toUpperCase() : null;
-        String tp = type != null ? type.toUpperCase() : null;
+    // removed type filter logic
 
-        if (allNull(accountId, risk, st, tp, from, to, minPoints, maxPoints, store)) {
-            return txRepo.findTop100ByOrderByCreatedAtDesc();
+    if (allNull(accountId, risk, st, from, to, minPoints, maxPoints, store)) {
+            List<Transaction> transactions = txRepo.findTop100ByOrderByCreatedAtDesc();
+            enrichWithCustomerData(transactions);
+            return transactions;
         }
         
         // Filter points transactions
-        return txRepo.findAll().stream()
+        List<Transaction> transactions = txRepo.findAll().stream()
             .filter(tx -> accountId == null || accountId.equals(tx.getAccountId()))
-            .filter(tx -> risk == null || risk.equals(tx.getRiskLevel()))
-            .filter(tx -> st == null || st.equals(tx.getStatus()))
-            .filter(tx -> tp == null || tp.equals(tx.getType()))
+            .filter(tx -> risk == null || Arrays.asList(risk.split(",")).contains(tx.getRiskLevel()))
+            .filter(tx -> st == null || Arrays.asList(st.split(",")).contains(tx.getStatus()))
+            // removed type filter
             .filter(tx -> from == null || tx.getCreatedAt().isAfter(from))
             .filter(tx -> to == null || tx.getCreatedAt().isBefore(to))
             .filter(tx -> minPoints == null || (tx.getPointsEarned() + tx.getPointsRedeemed()) >= minPoints)
@@ -64,6 +69,13 @@ public class TransactionController {
             .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
             .limit(100)
             .toList();
+        
+        enrichWithCustomerData(transactions);
+        return transactions;
+    }
+
+    private void enrichWithCustomerData(List<Transaction> transactions) {
+        // No enrichment needed, as note/type are not part of Fraud_MS Transaction entity
     }
 
     private boolean allNull(Object... vals) {
@@ -86,7 +98,6 @@ public class TransactionController {
             else tx.setStatus(tx.getStatus().toUpperCase());
 
             if (tx.getRiskLevel() != null) tx.setRiskLevel(tx.getRiskLevel().toUpperCase());
-            if (tx.getType() != null) tx.setType(tx.getType().toUpperCase());
             if (tx.getCreatedAt() == null) tx.setCreatedAt(Instant.now());
             tx.setUpdatedAt(null);
 
@@ -129,38 +140,37 @@ public class TransactionController {
             @RequestParam(required = false) String accountId,
             @RequestParam(required = false) String riskLevel,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String type,
+            // removed type filter
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
             @RequestParam(required = false) Integer minPoints,
             @RequestParam(required = false) Integer maxPoints,
             @RequestParam(required = false) String store
     ) throws Exception {
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.setHeader("Content-Disposition", "attachment; filename=transactions.csv");
-        response.setContentType("text/csv");
+    response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+    response.setHeader("Content-Disposition", "attachment; filename=transactions.csv");
+    response.setContentType("text/csv");
+    // Do NOT set any CORS headers here. Global CORS config will handle it.
 
-        List<Transaction> data = list(accountId, riskLevel, status, type, from, to, minPoints, maxPoints, store);
+    List<Transaction> data = list(accountId, riskLevel, status, from, to, minPoints, maxPoints, store);
 
         try (PrintWriter writer = response.getWriter()) {
-            writer.println("id,externalId,type,pointsEarned,pointsRedeemed,store,date,expiry,note,accountId,riskLevel,status,createdAt,updatedAt");
+            writer.println("id,externalId,pointsEarned,pointsRedeemed,store,date,expiry,accountId,riskLevel,status,createdAt,updatedAt");
             for (Transaction t : data) {
-                writer.printf("%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s%n",
-                        nullSafe(t.getId()),
-                        csv(t.getExternalId()),
-                        csv(t.getType()),
-                        csv(t.getPointsEarned()),
-                        csv(t.getPointsRedeemed()),
-                        csv(t.getStore()),
-                        csv(t.getDate()),
-                        csv(t.getExpiry()),
-                        csv(t.getNote()),
-                        csv(t.getAccountId()),
-                        csv(t.getRiskLevel()),
-                        csv(t.getStatus()),
-                        csv(t.getCreatedAt()),
-                        csv(t.getUpdatedAt())
-                );
+        writer.printf("%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s%n",
+            nullSafe(t.getId()),
+            csv(t.getExternalId()),
+            csv(t.getPointsEarned()),
+            csv(t.getPointsRedeemed()),
+            csv(t.getStore()),
+            csv(t.getDate()),
+            csv(t.getExpiry()),
+            csv(t.getAccountId()),
+            csv(t.getRiskLevel()),
+            csv(t.getStatus()),
+            csv(t.getCreatedAt()),
+            csv(t.getUpdatedAt())
+        );
             }
         }
     }
@@ -179,12 +189,22 @@ public class TransactionController {
     }
     
     /**
-     * Get transaction IDs from CustomerMs for a specific user
-     * This endpoint demonstrates Feign client integration with CustomerMs
+     * Get transaction data (id, type, note) from CustomerMs for a specific user
+     * This endpoint uses Feign client to fetch transactions from CustomerMS
      */
-    @GetMapping("/customer/{userId}/transaction-ids")
-    public ResponseEntity<List<String>> getCustomerTransactionIds(@PathVariable Long userId) {
-        List<String> transactionIds = customerTransactionClient.getTransactionIdsByUserId(userId);
-        return ResponseEntity.ok(transactionIds);
+    @GetMapping("/customer/{userId}/transactions")
+    public ResponseEntity<List<TransactionDTO>> getCustomerTransactionsByUserId(@PathVariable Long userId) {
+        List<TransactionDTO> transactions = customerTransactionClient.getTransactionsByUserId(userId);
+        return ResponseEntity.ok(transactions);
+    }
+    
+    /**
+     * Get all transaction data (id, type, note) from CustomerMs
+     * This endpoint uses Feign client to fetch all transactions from CustomerMS
+     */
+    @GetMapping("/customer/transactions/all")
+    public ResponseEntity<List<TransactionDTO>> getAllCustomerTransactions() {
+        List<TransactionDTO> transactions = customerTransactionClient.getAllTransactions();
+        return ResponseEntity.ok(transactions);
     }
 }

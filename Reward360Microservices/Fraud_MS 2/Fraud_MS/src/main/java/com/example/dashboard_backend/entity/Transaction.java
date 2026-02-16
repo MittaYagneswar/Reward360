@@ -41,6 +41,7 @@ public class Transaction {
     private LocalDate expiry;
     private String note;
 
+
     // User ID reference (without entity relationship for now)
     @Column(name = "user_id")
     private Long userId;
@@ -104,4 +105,5 @@ public class Transaction {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
 }

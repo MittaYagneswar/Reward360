@@ -51,7 +51,7 @@ export default function FraudMonitor() {
       // Update the transaction status locally
       setTransactions(prevTransactions =>
         prevTransactions.map(tx =>
-          tx.id === id ? { ...tx, status: 'APPROVED' } : tx
+          tx.id === id ? { ...tx, status: 'CLEARED' } : tx
         )
       )
       alert('Transaction approved successfully!')
@@ -160,14 +160,14 @@ export default function FraudMonitor() {
                       <button
                         className="d-btn"
                         onClick={() => handleBlock(tx.id)}
-                        disabled={tx.status === 'BLOCKED' || tx.status === 'APPROVED'}
+                        disabled={tx.status === 'BLOCKED' || tx.status === 'APPROVED' || tx.status === 'CLEARED'}
                       >
                         Block
                       </button>
                       <button
                         className="d-btn"
                         onClick={() => handleApprove(tx.id)}
-                        disabled={tx.status === 'APPROVED'}
+                        disabled={tx.status === 'APPROVED' || tx.status === 'CLEARED'}
                       >
                         Approve
                       </button>
@@ -181,11 +181,15 @@ export default function FraudMonitor() {
         </div>
         {transactions.length === 0 && (
           <div className="empty-state">
-            <div>No transactions found</div>
+            <div>🎉 No suspicious transactions found!</div>
+            <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '8px' }}>
+              All transactions are currently safe and cleared.
+            </div>
           </div>
         )}
       </div>
     </div>
   )
 }
+ 
  

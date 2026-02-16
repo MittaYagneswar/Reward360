@@ -6,11 +6,15 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.example.dashboard_backend.dto.TransactionDTO;
+
 @FeignClient(name = "CUSTOMERMS", fallback = CustomerTransactionFallback.class)
 public interface CustomerTransactionClient {
 
     @GetMapping("/api/users/transactions/user/{userId}")
-    List<String> getTransactionIdsByUserId(@PathVariable("userId") Long userId);
+    List<TransactionDTO> getTransactionsByUserId(@PathVariable("userId") Long userId);
+    
+
 }
 
 
