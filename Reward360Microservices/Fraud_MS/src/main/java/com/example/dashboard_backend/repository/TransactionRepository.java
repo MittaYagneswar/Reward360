@@ -1,16 +1,17 @@
 package com.example.dashboard_backend.repository;
-
-import com.example.dashboard_backend.entity.Transaction;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
+ 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import com.example.dashboard_backend.entity.Transaction;
+ 
+public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+ 
     // Simple filters
     List<Transaction> findTop100ByOrderByCreatedAtDesc();
     List<Transaction> findByAccountIdOrderByCreatedAtDesc(String accountId);
@@ -27,13 +28,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT t FROM Transaction t ORDER BY t.createdAt DESC")
     List<Transaction> findAllByOrderByCreatedAtDesc();
     List<Transaction> findByPaymentMethodOrderByCreatedAtDesc(String paymentMethod);
-
+ 
     // Ranges
     List<Transaction> findByCreatedAtBetweenOrderByCreatedAtDesc(Instant from, Instant to);
-
+ 
     // Recent slice
     List<Transaction> findByCreatedAtAfterOrderByCreatedAtDesc(Instant after);
-
+ 
     // Text search (description)
     @Query("""
            SELECT t FROM Transaction t
@@ -41,7 +42,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
            ORDER BY t.createdAt DESC
            """)
     List<Transaction> searchByText(@Param("q") String q);
-
+ 
     // Combined commonly-used queries (optional)
     @Query("""
            SELECT t FROM Transaction t
@@ -64,9 +65,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                    @Param("fromTs") Instant fromTs,
                                    @Param("toTs") Instant toTs,
                                    @Param("q") String q);
-
+ 
     List<Transaction> findTop10ByAccountIdOrderByCreatedAtDesc(String accountId);
-
+ 
     // Velocity: count transactions within a window
     @Query("""
        SELECT COUNT(t.id)
@@ -77,13 +78,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     long countByAccountIdAndCreatedAtBetween(@Param("accountId") String accountId,
                                              @Param("fromTs") Instant fromTs,
                                              @Param("toTs") Instant toTs);
-
+ 
     // For rewards system - find transactions by user
     List<Transaction> findByUserIdOrderByDateDesc(Long userId);
-
+ 
     // For fraud detection - find recent transactions by account
     List<Transaction> findByAccountIdAndCreatedAtAfter(String accountId, Instant after);
-    
+   
     // For fraud rules - find recent redemptions by user and type
     @Query("""
            SELECT t FROM Transaction t
@@ -95,7 +96,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findByUserAndTypeAndCreatedAtAfter(@Param("userId") Long userId,
                                                           @Param("type") String type,
                                                           @Param("after") Instant after);
-    
+   
     // For fraud rules - find recent transactions by user (for location check)
     List<Transaction> findTop5ByUserIdOrderByCreatedAtDesc(Long userId);
 }
+ 
+ 
