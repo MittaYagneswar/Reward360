@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,8 +57,8 @@ public class TransactionController {
         // Filter points transactions
         List<Transaction> transactions = txRepo.findAll().stream()
             .filter(tx -> accountId == null || accountId.equals(tx.getAccountId()))
-            .filter(tx -> risk == null || Arrays.asList(risk.split(",")).contains(tx.getRiskLevel()))
-            .filter(tx -> st == null || Arrays.asList(st.split(",")).contains(tx.getStatus()))
+            .filter(tx -> risk == null || risk.equals(tx.getRiskLevel()))
+            .filter(tx -> st == null || st.equals(tx.getStatus()))
             // removed type filter
             .filter(tx -> from == null || tx.getCreatedAt().isAfter(from))
             .filter(tx -> to == null || tx.getCreatedAt().isBefore(to))

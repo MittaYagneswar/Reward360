@@ -18,6 +18,8 @@ import com.cts.feign.PromotionFeignClient;
 import com.cts.repository.CustomerProfilerepository;
 import com.cts.repository.RedemptionRepository;
 import com.cts.repository.TransactionRepository;
+import com.cts.feign.FraudDetectionClient;
+import com.cts.dto.FraudTransactionRequest;
 @Service
 public class Pointsservice {
 
@@ -40,6 +42,10 @@ public class Pointsservice {
 
     @Autowired
     private CustomerProfilerepository custrepo;
+
+    @Autowired
+    private FraudDetectionClient fraudDetectionClient;  
+
 
 
     public CustomerProfile getCutomerId(Long id) {
@@ -101,6 +107,8 @@ public class Pointsservice {
         transaction.setDate(LocalDate.now());
         transactionRepository.save(transaction);
 
+
+        sendToFraudDetection(transaction);
         // Create Redemption record
         Redemption redemption = new Redemption();
         redemption.setTransactionId(transaction.getExternalId());
@@ -183,6 +191,8 @@ if (profile == null) { throw new RuntimeException("Customer profile not found fo
         
         // Return response DTO
       
+          // Send to Fraud Detection Service
+        sendToFraudDetection(transaction);
       
         return claimRequest;
     }
@@ -228,4 +238,36 @@ if (profile == null) { throw new RuntimeException("Customer profile not found fo
     // public List<Offers> getOffersByTier(String tier) {
     //     return offerRepository.findByTier(tier);
     // }
+
+       
+    private void sendToFraudDetection(Transaction transaction) {
+        try {
+            // Only send REDEMPTIONS to fraud detection, not CLAIMS
+            // Claims are just earning points - no fraud risk there
+            if (!"REDEMPTION".equals(transaction.getType())) {
+                return; // Skip fraud check for CLAIM transactions
+            }
+           
+            // Forward all REDEMPTION transactions to fraud detection.
+            // Fraud_MS will apply the configured rules (Option A) and decide risk levels.
+           
+            // Send to Fraud Detection Service
+            FraudTransactionRequest request = new FraudTransactionRequest();
+            request.setExternalId(transaction.getExternalId());
+            request.setAccountId("ACC-" + transaction.getUserId());
+            request.setType(transaction.getType());
+            request.setPointsEarned(transaction.getPointsEarned());
+            request.setPointsRedeemed(transaction.getPointsRedeemed());
+            request.setStore(transaction.getStore());
+            request.setDate(transaction.getDate());
+            request.setExpiry(transaction.getExpiry());
+            request.setNote(transaction.getNote());
+            request.setUserId(transaction.getUserId());
+           
+            fraudDetectionClient.sendTransactionForFraudCheck(request);
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            System.err.println("Failed to send transaction to fraud detection: " + e.getMessage());
+        }
+    }
 }   

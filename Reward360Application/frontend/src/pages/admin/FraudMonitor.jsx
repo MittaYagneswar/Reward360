@@ -181,10 +181,7 @@ export default function FraudMonitor() {
         </div>
         {transactions.length === 0 && (
           <div className="empty-state">
-            <div>🎉 No suspicious transactions found!</div>
-            <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '8px' }}>
-              All transactions are currently safe and cleared.
-            </div>
+            <div>No transactions found</div>
           </div>
         )}
       </div>
@@ -192,4 +189,7 @@ export default function FraudMonitor() {
   )
 }
  
+ 
+ 
+
  

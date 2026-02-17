@@ -1,5 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+:root {
+  --ps-grad-1: #7c3aed; /* violet */
+  --ps-grad-2: #06b6d4; /* cyan */
+  --ps-accent: #ffffff;
+  --ps-glass: rgba(255,255,255,0.08);
+  --ps-glass-border: rgba(255,255,255,0.16);
+  --ps-shadow: 0 10px 30px rgba(124,58,237,0.14);
+}
+
 .d-page {
   display: flex;
   flex-direction: column;
@@ -30,11 +39,11 @@
 
 /* Points Summary Card */
 .d-card.d-ps {
-  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--ps-grad-1) 0%, var(--ps-grad-2) 100%);
   border: none;
-  color: #fff;
+  color: var(--ps-accent);
   padding: 32px;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--ps-shadow);
 }
 
 .d-ps-row {
@@ -78,10 +87,10 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 8px 12px;
   width: fit-content;
 }
 
@@ -97,13 +106,57 @@
   color: #fff;
 }
 
+/* Identity block inside Points Summary */
+.d-ps-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.d-ps-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ps-grad-1), var(--ps-grad-2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: rgba(255,255,255,0.95);
+  font-size: 22px;
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 4px 10px rgba(12, 7, 54, 0.12);
+}
+
+.d-ps-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.d-ps-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ps-accent);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.08);
+}
+
+.d-ps-tier.d-ps-pill {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
 .d-ps-right {
+  
   text-align: right;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: var(--ps-glass);
+  border: 1px solid var(--ps-glass-border);
   border-radius: 16px;
   padding: 24px 32px;
   min-width: 200px;
+  backdrop-filter: blur(6px);
 }
 
 .d-ps-right-label {

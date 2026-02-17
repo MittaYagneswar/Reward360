@@ -113,80 +113,47 @@ public class TransactionServiceImpl implements TransactionService {
     
     /**
      * Apply fraud detection rules to a transaction
-     * Only flags TRULY SUSPICIOUS patterns, not normal user behavior
      */
     private void applyFraudRules(Transaction tx) {
-        // IMPORTANT: Don't flag normal CLAIM transactions - only check REDEMPTIONS
-        if (tx.getType() != null && tx.getType().equals("CLAIM")) {
-            // Claims are normal - just award points without fraud checking
-            tx.setRiskLevel("LOW");
-            tx.setStatus("CLEARED");
-            return;
-        }
-        
-        // Rule 1: EXTREMELY high value redemptions (potential account takeover)
-        // Changed from 10,000 to 50,000 to avoid false positives
-        if (tx.getPointsRedeemed() != null && tx.getPointsRedeemed() > 50000) {
+        // Rule 1: Check for high value redemptions (potential fraud)
+        if (tx.getPointsRedeemed() != null && tx.getPointsRedeemed() > 10000) {
             tx.setRiskLevel("HIGH");
             tx.setStatus("REVIEW");
-            tx.setDescription("Flagged: Extremely high value redemption (>50,000 points)");
+            tx.setDescription("Flagged: High value redemption (>10000 points)");
             return;
         }
         
-        // Rule 2: RAPID multiple redemptions (bot-like behavior)
-        // Changed from 5 redemptions in 10 minutes to 10 redemptions in 5 minutes
+        // Rule 2: Check for more than 5 redemptions in 10 minutes (velocity check)
         if (tx.getType() != null && tx.getType().equals("REDEMPTION")) {
             if (tx.getUserId() != null) {
-                Instant fiveMinutesAgo = Instant.now().minusSeconds(300);
+                Instant tenMinutesAgo = Instant.now().minusSeconds(600);
                 List<Transaction> recentRedemptions = transactionRepository
-                    .findByUserAndTypeAndCreatedAtAfter(tx.getUserId(), "REDEMPTION", fiveMinutesAgo);
+                    .findByUserAndTypeAndCreatedAtAfter(tx.getUserId(), "REDEMPTION", tenMinutesAgo);
                 
-                if (recentRedemptions.size() >= 10) {
+                if (recentRedemptions.size() >= 5) {
                     tx.setRiskLevel("HIGH");
                     tx.setStatus("REVIEW");
-                    tx.setDescription("Flagged: Rapid multiple redemptions (>10 in 5 min) - Bot suspected");
+                    tx.setDescription("Flagged: Multiple redemptions in short time (>5 in 10 min)");
                     return;
                 }
             }
         }
         
-        // Rule 3: EXTREME account activity (account compromise suspected)
-        // Changed from 20 transactions in 1 hour to 50 transactions in 1 hour
+        // Rule 3: Check for unusual account activity
         if (tx.getAccountId() != null) {
             Instant oneHourAgo = Instant.now().minusSeconds(3600);
             List<Transaction> recentTransactions = transactionRepository
                 .findByAccountIdAndCreatedAtAfter(tx.getAccountId(), oneHourAgo);
             
-            if (recentTransactions.size() > 50) {
+            if (recentTransactions.size() > 20) {
                 tx.setRiskLevel("MEDIUM");
                 tx.setStatus("REVIEW");
-                tx.setDescription("Flagged: Extreme account activity (>50 transactions in 1 hour)");
+                tx.setDescription("Flagged: Unusual account activity (>20 transactions in 1 hour)");
                 return;
             }
         }
         
-        // Rule 4: Multiple HIGH value redemptions in short time (suspicious pattern)
-        if (tx.getType() != null && tx.getType().equals("REDEMPTION") && tx.getPointsRedeemed() != null) {
-            if (tx.getPointsRedeemed() > 20000 && tx.getUserId() != null) {
-                Instant thirtyMinutesAgo = Instant.now().minusSeconds(1800);
-                List<Transaction> recentHighValueRedemptions = transactionRepository
-                    .findByUserAndTypeAndCreatedAtAfter(tx.getUserId(), "REDEMPTION", thirtyMinutesAgo);
-                
-                // Count how many were high value
-                long highValueCount = recentHighValueRedemptions.stream()
-                    .filter(t -> t.getPointsRedeemed() != null && t.getPointsRedeemed() > 20000)
-                    .count();
-                
-                if (highValueCount >= 3) {
-                    tx.setRiskLevel("HIGH");
-                    tx.setStatus("REVIEW");
-                    tx.setDescription("Flagged: Multiple high-value redemptions (>20k points) in 30 minutes");
-                    return;
-                }
-            }
-        }
-        
-        // Default: No fraud detected - transaction is legitimate
+        // Default: No fraud detected, clear the transaction
         if (tx.getRiskLevel() == null) {
             tx.setRiskLevel("LOW");
         }

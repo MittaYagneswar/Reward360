@@ -55,6 +55,13 @@ export default function Dashboard() {
 
   if (loading || !user) return <div className="d-page">Loading...</div>
 
+
+    const nextExpiry = user.nextExpiry ?? '23/2/2026'
+  const today = new Date().toISOString().split('T')[0]
+  const todayTransactions = transactions.filter(t => t.date === today)
+  const pointsEarnedToday = todayTransactions.reduce((sum, t) => sum + (t.pointsEarned || 0), 0)
+  const pointsRedeemedToday = todayTransactions.reduce((sum, t) => sum + (t.pointsRedeemed || 0), 0)
+  const totalPointsEarned = user.lifetimePoints ?? 0
   const activities = [
     { title: 'Daily Login Bonus', points: 50, code: 'LOGIN' },
     { title: 'Write a Product Review', points: 100, code: 'REVIEW' },
@@ -69,11 +76,20 @@ export default function Dashboard() {
         <div className="d-ps-row">
           <div className="d-ps-left">
             <h3 className="d-ps-title">Points Summary</h3>
-            <p className="d-ps-sub">
-              Member: <span className="d-ps-strong">{user.customerName}</span>
-              <span className="d-ps-dot">·</span>
-              Tier: <span className="d-ps-strong">{user.loyaltyTier}</span>
-            </p>
+            <div className="d-ps-sub">
+              <div className="d-ps-identity">
+                <div className="d-ps-avatar" aria-hidden>
+                  {user.customerName ? user.customerName.charAt(0).toUpperCase() : '?'}
+                </div>
+                <div className="d-ps-meta">
+                  <div className="d-ps-name">{user.customerName}</div>
+                  <div className="d-ps-tier d-ps-pill">
+                    <span className="d-ps-pill-label">Tier</span>
+                    <span className="d-ps-pill-value">{user.loyaltyTier}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div className="d-ps-right">
             <div className="d-ps-right-label">Current Balance</div>
@@ -81,6 +97,31 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      
+      <div className="d-stats-row">
+        <div className="d-stat-card">
+          <div className="d-stat-icon">📊</div>
+          <div className="d-stat-content">
+            <div className="d-stat-label">Total Earned</div>
+            <div className="d-stat-value">{totalPointsEarned}</div>
+          </div>
+        </div>
+        <div className="d-stat-card">
+          <div className="d-stat-icon">⬆️</div>
+          <div className="d-stat-content">
+            <div className="d-stat-label">Earned Today</div>
+            <div className="d-stat-value d-stat-earned">{pointsEarnedToday}</div>
+          </div>
+        </div>
+        <div className="d-stat-card">
+          <div className="d-stat-icon">⬇️</div>
+          <div className="d-stat-content">
+            <div className="d-stat-label">Redeemed Today</div>
+            <div className="d-stat-value d-stat-redeemed">{pointsRedeemedToday}</div>
+          </div>
+        </div>
+      </div>
+
 
       {/* Activities Grid */}
       <div className="d-card">
